@@ -1,4 +1,5 @@
 import * as ex from "excalibur";
+import {DisplayMode} from "excalibur";
 import {Resources} from "./Resources";
 import {Player} from "./Player";
 
@@ -7,6 +8,7 @@ export class Game {
         let engine = new ex.Engine({
             width: 800,
             height: 600,
+            displayMode: DisplayMode.FillScreen
         })
 
         let loader = new ex.Loader([Resources.Sword, Resources.Nature, Resources.Elements]);
