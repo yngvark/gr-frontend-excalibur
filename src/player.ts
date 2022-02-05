@@ -13,7 +13,7 @@ export class Player extends Actor {
   onInitialize() {
     this.graphics.add(Resources.Sword.toSprite());
     this.on('pointerup', () => {
-      alert('yo');
+      console.log('yo');
     });
   }
 }
