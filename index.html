@@ -8,12 +8,21 @@
     <title>Excalibur + Parcel v2</title>
     <style>
         body {
-            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            background: dimgrey;
         }
     </style>
 </head>
 
 <body>
+    <div class="container">
+        <canvas id="game"></canvas>
+    </div>
+
     <script type="module" src="./src/main.ts"></script>
 </body>
 

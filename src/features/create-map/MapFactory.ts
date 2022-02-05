@@ -1,6 +1,6 @@
 import naturePng from "./nature.png";
 import elementsPng from "./elements.png";
-import {ImageSource, Loader, SpriteSheet, TileMap} from "excalibur";
+import {ImageSource, Loader, SpriteSheet, TileMap, TileMapArgs} from "excalibur";
 import * as ex from "excalibur";
 import {Player} from "../player/Player";
 
@@ -11,8 +11,51 @@ export function loadables():ImageSource[] {
     return [elements, nature];
 }
 
-export function createTileMap(): TileMap {
-    const elementsSpriteSheet = SpriteSheet.fromImageSource({
+export function createMap(width: number, height: number): TileMap {
+    const tileMap = createEmptyTileMap(height, width);
+
+    const elementsSpriteSheet = createElementsSpriteSheet();
+    const natureSpriteSheet = createNatureSpriteSheet()
+
+    for (let cell of tileMap.data) {
+        const grass = elementsSpriteSheet.getSprite(0, 0);
+        const sprite = getRandomSprite(elementsSpriteSheet, natureSpriteSheet)
+
+        if (sprite) {
+            cell.addGraphic(grass);
+            cell.addGraphic(sprite);
+        }
+    }
+
+    return tileMap
+}
+
+function createEmptyTileMap(height: number, width: number) {
+    const cellWidth = 48
+    const cellHeight = 48
+
+    let rows = Math.floor(height / cellHeight)
+    let cols = Math.floor(width / cellWidth)
+    console.log({
+        canvasWidth: width,
+        canvasHeight: height,
+        rows,
+        cols
+    })
+
+    const tileMap = new TileMap({
+        x: 0,
+        y: 0,
+        rows: rows,
+        cols: cols,
+        cellWidth: cellWidth,
+        cellHeight: cellHeight,
+    });
+    return tileMap;
+}
+
+function createElementsSpriteSheet() {
+    return SpriteSheet.fromImageSource({
         image: elements,
         grid: {
             rows: 2,
@@ -27,8 +70,10 @@ export function createTileMap(): TileMap {
             }
         }
     });
+}
 
-    const natureSpriteSheet = SpriteSheet.fromImageSource({
+function createNatureSpriteSheet() {
+    return SpriteSheet.fromImageSource({
         image: nature,
         grid: {
             rows: 40,
@@ -43,29 +88,8 @@ export function createTileMap(): TileMap {
             }
         }
     });
-
-    const tileMap = new TileMap({
-        x: 0,
-        y: 0,
-        rows: 10,
-        cols: 10,
-        cellWidth: 48,
-        cellHeight: 48,
-    });
-
-
-    for (let cell of tileMap.data) {
-        const grass = elementsSpriteSheet.getSprite(0, 0);
-        const sprite = getRandomSprite(elementsSpriteSheet, natureSpriteSheet)
-
-        if (sprite) {
-            cell.addGraphic(grass);
-            cell.addGraphic(sprite);
-        }
-    }
-
-    return tileMap
 }
+
 
 function getRandomSprite(elements: SpriteSheet, nature: SpriteSheet) {
     let rnd: number = Math.floor(Math.random() * 100)
