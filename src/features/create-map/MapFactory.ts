@@ -11,7 +11,7 @@ export function loadables():ImageSource[] {
 }
 
 export function createMap(graphicConfig: GraphicConfig, width: number, height: number): TileMap {
-    const tileMap = createEmptyTileMap(graphicConfig, height, width);
+    const tileMap = createEmptyTileMap(graphicConfig, width, height);
 
     const elementsSpriteSheet = createElementsSpriteSheet(graphicConfig);
     const natureSpriteSheet = createNatureSpriteSheet(graphicConfig)
@@ -29,7 +29,7 @@ export function createMap(graphicConfig: GraphicConfig, width: number, height: n
     return tileMap
 }
 
-function createEmptyTileMap(graphicConfig: GraphicConfig, height: number, width: number) {
+function createEmptyTileMap(graphicConfig: GraphicConfig, width: number, height: number) {
     let rows = Math.floor(height / graphicConfig.CELL_HEIGHT)
     let cols = Math.floor(width / graphicConfig.CELL_WIDTH)
 
@@ -79,12 +79,11 @@ function createNatureSpriteSheet(graphicConfig: GraphicConfig) {
     });
 }
 
-
 function getRandomSprite(elements: SpriteSheet, nature: SpriteSheet) {
     let rnd: number = Math.floor(Math.random() * 100)
-    if (rnd < 30) {
+    if (rnd < 70) {
         return elements.getSprite(0, 0)
-    } else if (rnd < 60) {
+    } else if (rnd < 95) {
         return elements.getSprite(0, 1)
     } else {
         return nature.getSprite(0, 0)
