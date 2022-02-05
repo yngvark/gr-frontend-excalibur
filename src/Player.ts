@@ -1,10 +1,10 @@
-import { Actor, vec } from "excalibur";
+import * as ex from "excalibur";
 import { Resources } from "./Resources";
 
-export class Player extends Actor {
+export class Player extends ex.Actor {
   constructor() {
     super({
-      pos: vec(150, 150),
+      pos: ex.vec(150, 150),
       width: 100,
       height: 100
     });
@@ -12,8 +12,18 @@ export class Player extends Actor {
 
   onInitialize() {
     this.graphics.add(Resources.Sword.toSprite());
-    this.on('pointerup', () => {
-      console.log('yo');
-    });
+  }
+
+  public update(engine, delta) {
+    if (
+        engine.input.keyboard.isHeld(ex.Input.Keys.W) ||
+        engine.input.keyboard.isHeld(ex.Input.Keys.Up)
+    ) {
+      console.log("Forward")
+    }
+
+    if (engine.input.keyboard.wasPressed(ex.Input.Keys.Right)) {
+      console.log("FIRE!")
+    }
   }
 }
