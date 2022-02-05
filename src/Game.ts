@@ -1,7 +1,7 @@
 import * as ex from "excalibur";
 import {DisplayMode} from "excalibur";
-import {Player} from "./player/Player";
-import * as MapFactory from "./create-map/MapFactory";
+import {Player} from "./features/player/Player";
+import * as MapFactory from "./features/create-map/MapFactory";
 
 export class Game {
     runGame() {
