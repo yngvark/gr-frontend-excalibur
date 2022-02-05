@@ -53,7 +53,7 @@ export class Game {
         let tileMap = MapFactory.createMap(graphicConfig, engine.screen.drawWidth, engine.screen.drawHeight)
         scene.add(tileMap)
 
-        const player = new Actor();
+        const player = new Actor(graphicConfig);
         scene.add(player);
 
         scene.camera.strategy.lockToActor(player)
