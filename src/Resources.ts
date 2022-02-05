@@ -1,4 +1,4 @@
-import {  ImageSource } from "excalibur";
+import { ImageSource } from "excalibur";
 import sword from "./images/sword.png"; // for parcelv2 this is configured in the .parcelrc
 import nature from "./images/draw_map/nature.png";
 import elements from "./images/draw_map/elements.png";

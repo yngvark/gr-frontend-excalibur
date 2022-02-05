@@ -1,5 +1,5 @@
-import { Actor, Color, vec } from "excalibur";
-import { Resources } from "./resources";
+import { Actor, vec } from "excalibur";
+import { Resources } from "./Resources";
 
 export class Player extends Actor {
   constructor() {
