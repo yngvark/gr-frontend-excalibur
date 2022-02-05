@@ -1,8 +1,7 @@
 import naturePng from "./nature.png";
 import elementsPng from "./elements.png";
-import {ImageSource, Loader, SpriteSheet, TileMap, TileMapArgs} from "excalibur";
-import * as ex from "excalibur";
-import {Player} from "../player/Player";
+import {ImageSource, SpriteSheet, TileMap} from "excalibur";
+import {GraphicConfig} from "../../lib/config/GraphicConfig";
 
 export const elements = new ImageSource(elementsPng)
 export const nature = new ImageSource(naturePng)
@@ -11,11 +10,11 @@ export function loadables():ImageSource[] {
     return [elements, nature];
 }
 
-export function createMap(width: number, height: number): TileMap {
-    const tileMap = createEmptyTileMap(height, width);
+export function createMap(graphicConfig: GraphicConfig, width: number, height: number): TileMap {
+    const tileMap = createEmptyTileMap(graphicConfig, height, width);
 
-    const elementsSpriteSheet = createElementsSpriteSheet();
-    const natureSpriteSheet = createNatureSpriteSheet()
+    const elementsSpriteSheet = createElementsSpriteSheet(graphicConfig);
+    const natureSpriteSheet = createNatureSpriteSheet(graphicConfig)
 
     for (let cell of tileMap.data) {
         const grass = elementsSpriteSheet.getSprite(0, 0);
@@ -30,38 +29,28 @@ export function createMap(width: number, height: number): TileMap {
     return tileMap
 }
 
-function createEmptyTileMap(height: number, width: number) {
-    const cellWidth = 48
-    const cellHeight = 48
+function createEmptyTileMap(graphicConfig: GraphicConfig, height: number, width: number) {
+    let rows = Math.floor(height / graphicConfig.CELL_HEIGHT)
+    let cols = Math.floor(width / graphicConfig.CELL_WIDTH)
 
-    let rows = Math.floor(height / cellHeight)
-    let cols = Math.floor(width / cellWidth)
-    console.log({
-        canvasWidth: width,
-        canvasHeight: height,
-        rows,
-        cols
-    })
-
-    const tileMap = new TileMap({
+    return new TileMap({
         x: 0,
         y: 0,
         rows: rows,
         cols: cols,
-        cellWidth: cellWidth,
-        cellHeight: cellHeight,
+        cellWidth: graphicConfig.CELL_WIDTH,
+        cellHeight: graphicConfig.CELL_HEIGHT,
     });
-    return tileMap;
 }
 
-function createElementsSpriteSheet() {
+function createElementsSpriteSheet(graphicConfig: GraphicConfig) {
     return SpriteSheet.fromImageSource({
         image: elements,
         grid: {
             rows: 2,
             columns: 8,
-            spriteHeight: 48,
-            spriteWidth: 48
+            spriteWidth: graphicConfig.CELL_WIDTH,
+            spriteHeight: graphicConfig.CELL_HEIGHT,
         },
         spacing: {
             margin: {
@@ -72,14 +61,14 @@ function createElementsSpriteSheet() {
     });
 }
 
-function createNatureSpriteSheet() {
+function createNatureSpriteSheet(graphicConfig: GraphicConfig) {
     return SpriteSheet.fromImageSource({
         image: nature,
         grid: {
             rows: 40,
             columns: 16,
-            spriteHeight: 48,
-            spriteWidth: 48
+            spriteWidth: graphicConfig.CELL_WIDTH,
+            spriteHeight: graphicConfig.CELL_HEIGHT,
         },
         spacing: {
             margin: {

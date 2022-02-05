@@ -1,5 +1,6 @@
 import {Color, DisplayMode, Engine, Loader, Scene, Screen} from "excalibur";
-import {Player} from "./features/player/Player";
+import {Actor} from "./features/player/Actor";
+import {GraphicConfig} from "./lib/config/GraphicConfig";
 import * as MapFactory from "./features/create-map/MapFactory";
 
 export class Game {
@@ -10,16 +11,13 @@ export class Game {
             backgroundColor: Color.LightGray,
         })
 
-        console.log({
-            w: engine.screen.drawWidth,
-            h: engine.screen.drawHeight,
-        })
+        let graphicConfig = new GraphicConfig()
 
-        let loadables = [].concat(Player.loadables(), MapFactory.loadables())
+        let loadables = [].concat(Actor.loadables(), MapFactory.loadables())
         let loader = new Loader(loadables);
         loader.suppressPlayButton = true
 
-        let scene = this.createScene(engine);
+        let scene = this.createScene(engine, graphicConfig);
 
         engine.add("main", scene)
         engine.goToScene("main")
@@ -31,13 +29,13 @@ export class Game {
         engine.start() // This probably should be removed in production
     }
 
-    private createScene(engine: Engine) {
+    private createScene(engine: Engine, graphicConfig: GraphicConfig) {
         let scene = new Scene()
 
-        let tileMap = MapFactory.createMap(engine.screen.drawWidth, engine.screen.drawHeight)
+        let tileMap = MapFactory.createMap(graphicConfig, engine.screen.drawWidth, engine.screen.drawHeight)
         scene.add(tileMap)
 
-        const player = new Player();
+        const player = new Actor();
         scene.add(player);
 
         return scene;
