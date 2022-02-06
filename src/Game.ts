@@ -1,8 +1,10 @@
-import {Color, DisplayMode, Engine, Loader, Scene, Screen} from "excalibur";
-import {Actor} from "./features/player/Actor";
-import {GraphicConfig} from "./lib/config/GraphicConfig";
-import * as MapFactory from "./features/create-map/MapFactory";
-import {ScreenDimension} from "excalibur/build/dist/Screen";
+import {Color, DisplayMode, Engine, Loader} from "excalibur";
+import {Player} from "./features/player/Player";
+import {MapGenerator} from "./features/create-map/MapGenerator";
+import {SceneChanger} from "./features/scene-changer/SceneChanger";
+import {TileMapFactory} from "./features/create-map/TileMapFactory";
+import {Chunk} from "./features/create-map/Chunk";
+import * as ex from "excalibur";
 
 export class Game {
     runGame() {
@@ -23,16 +25,19 @@ export class Game {
             },
         })
 
-        let graphicConfig = new GraphicConfig()
-
-        let loadables = [].concat(Actor.loadables(), MapFactory.loadables())
+        let loadables = [].concat(Player.loadables(), TileMapFactory.loadables())
         let loader = new Loader(loadables);
         loader.suppressPlayButton = true
 
-        let scene = this.createScene(engine, graphicConfig);
+        let worldMap = new MapGenerator().generate(1000, 1000)
+        let player = new Player()
+        let sceneChanger = new SceneChanger(engine, worldMap, player)
 
-        engine.add("main", scene)
-        engine.goToScene("main")
+        player.graphics.onPreDraw = (ctx: ex.ExcaliburGraphicsContext, delta: number) => {
+            sceneChanger.drawNewChunkOnPlayerMove()
+        }
+
+        sceneChanger.changeSceneTo(new Chunk(0, 0))
 
         engine.start(loader).then(() => {
             console.log("Game started")
@@ -47,17 +52,5 @@ export class Game {
     //     });
     }
 
-    private createScene(engine: Engine, graphicConfig: GraphicConfig):Scene {
-        let scene = new Scene()
 
-        let tileMap = MapFactory.createMap(graphicConfig, engine.screen.drawWidth, engine.screen.drawHeight)
-        scene.add(tileMap)
-
-        const player = new Actor(graphicConfig);
-        scene.add(player);
-
-        scene.camera.strategy.lockToActor(player)
-
-        return scene;
-    }
 }
