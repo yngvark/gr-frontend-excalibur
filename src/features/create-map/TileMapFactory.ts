@@ -3,8 +3,9 @@ import elementsPng from "./elements.png";
 import {ImageSource, SpriteSheet, TileMap} from "excalibur";
 import {CellConfig} from "../../lib/config/CellConfig";
 import {WorldMap} from "./WorldMap";
-import {Chunk} from "./Chunk";
+import {Chunk} from "../scene-changer/Chunk";
 import {CellType} from "./CellType";
+import {Rectangle} from "../scene-changer/Rectangle";
 
 export const elements = new ImageSource(elementsPng)
 export const nature = new ImageSource(naturePng)
@@ -14,24 +15,30 @@ export class TileMapFactory {
         return [elements, nature];
     }
 
-    static createTileMap(drawWidth: number, drawheight: number, worldMap: WorldMap, chunk: Chunk
+    static createTileMap(
+        drawWidth: number,
+        drawheight: number,
+        worldMap: WorldMap,
+        chunk: Chunk,
+        chunkSize: Rectangle,
     ): TileMap {
-        return createTileMap(drawWidth, drawheight, worldMap, chunk)
+        return createTileMap(drawWidth, drawheight, worldMap, chunk, chunkSize)
     }
 }
 
-function createTileMap(drawWidth: number, drawHeight: number, worldMap: WorldMap, chunk: Chunk): TileMap {
-    const tileMap = createEmptyTileMap();
+function createTileMap(drawWidth: number, drawHeight: number, worldMap: WorldMap, chunk: Chunk, chunkSize: Rectangle): TileMap {
+    console.log("createTileMap", drawWidth, drawHeight, worldMap, chunk, chunkSize)
+    const tileMap = createEmptyTileMap(chunkSize);
 
     const elementsSpriteSheet = createElementsSpriteSheet();
     const natureSpriteSheet = createNatureSpriteSheet()
-    // console.log(tileMap.data)
 
     let x = 0
     let y = 0
 
+    const grass = elementsSpriteSheet.getSprite(0, 0);
+
     for (let cell of tileMap.data) {
-        const grass = elementsSpriteSheet.getSprite(0, 0);
         const sprite = createSpritesFromChunk(elementsSpriteSheet, natureSpriteSheet, worldMap, chunk, x, y)
 
         if (!sprite) {
@@ -39,11 +46,11 @@ function createTileMap(drawWidth: number, drawHeight: number, worldMap: WorldMap
             break
         }
 
-        // cell.addGraphic(grass);
+        cell.addGraphic(grass);
         cell.addGraphic(sprite);
 
         x++
-        if (x == Chunk.CHUNK_COLS) {
+        if (x == chunkSize.width) {
             x = 0
             y++
         }
@@ -52,22 +59,51 @@ function createTileMap(drawWidth: number, drawHeight: number, worldMap: WorldMap
     return tileMap
 }
 
-function createEmptyTileMap() {
+function createEmptyTileMap(chunkSize: Rectangle):TileMap {
     return new TileMap({
         x: 0,
         y: 0,
-        rows: Chunk.CHUNK_ROWS,
-        cols: Chunk.CHUNK_COLS,
+        cols: chunkSize.width,
+        rows: chunkSize.height,
         cellWidth: CellConfig.CELL_WIDTH,
         cellHeight: CellConfig.CELL_HEIGHT,
     });
+}
+
+function createSpritesFromChunk(
+    elements: SpriteSheet, nature: SpriteSheet, worldMap: WorldMap, chunk: Chunk, x: number, y: number):ex.Sprite {
+
+    let xInWorld = chunk.originWorldCoord.x + x
+    let yInWorld = chunk.originWorldCoord.y + y
+
+    let cell = worldMap.data[yInWorld][xInWorld]
+    // console.log({
+    //     xInWorld,
+    //     yInWorld,
+    //     cell,
+    //     worldMap,
+    //     chunk
+    // })
+
+    switch (cell) {
+        case CellType.GRASS:
+            return elements.getSprite(0, 0)
+        case CellType.TREE:
+            return elements.getSprite(0, 1)
+        case CellType.GREEN:
+            return nature.getSprite(0, 0)
+        case CellType.MARKER:
+            return elements.getSprite(4, 1)
+        default:
+            return elements.getSprite(0, 0)
+    }
 }
 
 function createElementsSpriteSheet() {
     return SpriteSheet.fromImageSource({
         image: elements,
         grid: {
-            rows: 3,
+            rows: 10,
             columns: 8,
             spriteWidth: CellConfig.CELL_WIDTH,
             spriteHeight: CellConfig.CELL_HEIGHT,
@@ -97,42 +133,4 @@ function createNatureSpriteSheet() {
             }
         }
     });
-}
-
-function getRandomSprite(elements: SpriteSheet, nature: SpriteSheet) {
-    let rnd: number = Math.floor(Math.random() * 100)
-    if (rnd < 70) {
-        return elements.getSprite(0, 0)
-    } else if (rnd < 95) {
-        return elements.getSprite(0, 1)
-    } else {
-        return nature.getSprite(0, 0)
-    }
-}
-
-function createSpritesFromChunk(
-    elements: SpriteSheet, nature: SpriteSheet, worldMap: WorldMap, chunk: Chunk, x: number, y: number):ex.Sprite {
-
-    let xInWorld = chunk.x * Chunk.CHUNK_COLS + x
-    let yInWorld = chunk.y * Chunk.CHUNK_ROWS + y
-
-    let cell = worldMap.data[yInWorld][xInWorld]
-    // console.log({
-    //     xInWorld,
-    //     yInWorld,
-    //     cell,
-    //     worldMap,
-    //     chunk
-    // })
-
-    switch (cell) {
-        case CellType.GRASS:
-            return elements.getSprite(0, 0)
-        case CellType.TREE:
-            return elements.getSprite(0, 1)
-        case CellType.GREEN:
-            return nature.getSprite(0, 0)
-        default:
-            return elements.getSprite(0, 2)
-    }
 }

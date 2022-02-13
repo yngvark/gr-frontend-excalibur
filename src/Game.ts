@@ -1,10 +1,9 @@
 import {Color, DisplayMode, Engine, Loader} from "excalibur";
 import {Player} from "./features/player/Player";
 import {MapGenerator} from "./features/create-map/MapGenerator";
-import {SceneChanger} from "./features/scene-changer/SceneChanger";
+import {SceneManager} from "./features/scene-changer/SceneManager";
 import {TileMapFactory} from "./features/create-map/TileMapFactory";
-import {Chunk} from "./features/create-map/Chunk";
-import * as ex from "excalibur";
+import {Coord} from "./features/scene-changer/Coord";
 
 export class Game {
     runGame() {
@@ -29,15 +28,11 @@ export class Game {
         let loader = new Loader(loadables);
         loader.suppressPlayButton = true
 
-        let worldMap = new MapGenerator().generate(1000, 1000)
-        let player = new Player()
-        let sceneChanger = new SceneChanger(engine, worldMap, player)
+        let worldMap = new MapGenerator().generate(300, 300)
+        let sceneChanger = new SceneManager(engine, worldMap, new Coord(25, 8))
+        sceneChanger.drawScene()
 
-        player.graphics.onPreDraw = (ctx: ex.ExcaliburGraphicsContext, delta: number) => {
-            sceneChanger.drawNewChunkOnPlayerMove()
-        }
-
-        sceneChanger.changeSceneTo(new Chunk(0, 0))
+        console.log("World map world map", worldMap)
 
         engine.start(loader).then(() => {
             console.log("Game started")

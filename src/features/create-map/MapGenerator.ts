@@ -9,16 +9,34 @@ export class MapGenerator {
             data[y] = []
 
             for (let x = 0; x < width; x++) {
-                data[y].push(this.getRandomCellType())
+
+                let cellTypeToAdd
+
+                // if (x % 10 == 0) {
+                if (x % 10 == 0 || y % 10 == 0) {
+                    cellTypeToAdd = this.getMarker()
+                } else {
+                    cellTypeToAdd = this.getRandomCellType()
+                }
+
+                // if (cellTypeToAdd == CellType.MARKER) {
+                //     console.log("Pushing marker at", x, y)
+                // }
+                data[y].push(cellTypeToAdd)
             }
         }
 
         return new WorldMap(width, height, data)
     }
 
-    private getRandomCellType():CellType {
-        let rnd = Math.floor(Math.random() * Object.keys(CellType).length / 2)
-        return CellType[CellType[rnd]]
+    private getMarker() {
+        return CellType.MARKER
     }
 
+    private getRandomCellType():CellType {
+        let vocabulary = [CellType.GRASS, CellType.TREE, CellType.GREEN]
+        let rnd = Math.floor(Math.random() * vocabulary.length)
+
+        return vocabulary[rnd]
+    }
 }
