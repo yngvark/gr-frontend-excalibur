@@ -25,25 +25,62 @@ export class SceneManager {
         this.worldMap = worldMap
         this.chunkSize = this.getChunkSize(this.engine.drawWidth, this.engine.drawHeight)
         this.walkableArea = this.getWalkableArea(this.engine.drawWidth, this.engine.drawHeight)
-        this.chunk = this.getChunkFromWorldCoord(initPlayerWorldCoordinate)
 
         console.log("this.engine.drawWidth", this.engine.drawWidth, this.engine.drawHeight)
         console.log("this.chunkSize", this.chunkSize)
-        console.log("this.chunk.originWorldCoord", this.chunk.originWorldCoord)
         console.log("this.walkableArea", this.walkableArea)
-
-        this.player = new Player()
-        this.setPlayerInitPos(this.player, this.chunk, initPlayerWorldCoordinate, this.chunkSize)
-        console.log("this.player.pos", this.player.pos)
 
         if (!this.walkableArea.isWithinWalkableArea(initPlayerWorldCoordinate)) {
             throw new GameError("invalid starting pos")
         }
 
+        this.player = new Player()
+
         let _sceneChanger = this
         this.player.graphics.onPreDraw = (ctx: ex.ExcaliburGraphicsContext, delta: number) => {
             _sceneChanger.playerPreDraw()
         }
+
+        this.setChunkAndPlayerPos(initPlayerWorldCoordinate)
+    }
+
+    setChunkAndPlayerPos(playerWorldCoordinate: Coord) {
+        if (this.chunk != undefined) {
+            console.log("old chunk.originWorldCoord", this.chunk.originWorldCoord)
+        }
+
+        this.chunk = this.getChunkFromWorldCoord(playerWorldCoordinate)
+        console.log("this.chunk.originWorldCoord", this.chunk.originWorldCoord)
+
+        this.setPlayerPos(this.player, this.chunk, playerWorldCoordinate, this.chunkSize)
+    }
+
+    private getChunkFromWorldCoord(worldCoord: Coord):Chunk {
+        if (worldCoord.x >= this.worldMap.width) {
+            throw new GameError(`x ${worldCoord.x} above worldmap width`)
+        }
+
+        if (worldCoord.y >= this.worldMap.height) {
+            throw new GameError(`x ${worldCoord.y} above worldmap height`)
+        }
+
+        // TODO Her er det blir galt akkurat nå. Den nye viewporten er ikke det samme som chunken.
+        let chunkX = Math.floor(worldCoord.x / this.chunkSize.width)
+        let chunkY = Math.floor(worldCoord.y / this.chunkSize.height)
+        let originWorldCoord = new Coord(chunkX, chunkY)
+
+        return new Chunk(originWorldCoord)
+    }
+
+    private setPlayerPos(player: Player, chunk: Chunk, playerWorldCoordinate: Coord, chunkSize:Rectangle) {
+        let distanceFromChunkEdgeToPlayerX = playerWorldCoordinate.x - chunk.originWorldCoord.x * chunkSize.width
+        let distanceFromChunkEdgeToPlayerY = playerWorldCoordinate.y - chunk.originWorldCoord.y * chunkSize.height
+
+        let distanceInPixelsX = distanceFromChunkEdgeToPlayerX * CellConfig.CELL_WIDTH
+        let distanceInPixelsY = distanceFromChunkEdgeToPlayerY * CellConfig.CELL_HEIGHT
+
+        console.log("Setting player pos to coord,pixels", playerWorldCoordinate, distanceInPixelsY, distanceInPixelsY)
+        player.pos = ex.vec(distanceInPixelsX, distanceInPixelsY)
     }
 
     private getChunkSize(drawWidth: number, drawHeight: number):Rectangle {
@@ -74,35 +111,10 @@ export class SceneManager {
         return new WalkableArea(origin, rectangle)
     }
 
-    private getChunkFromWorldCoord(coord: Coord):Chunk {
-        if (coord.x >= this.worldMap.width) {
-            throw new GameError(`x ${coord.x} above worldmap width`)
-        }
-
-        if (coord.y >= this.worldMap.height) {
-            throw new GameError(`x ${coord.y} above worldmap height`)
-        }
-
-        let chunkX = Math.floor(coord.x / this.chunkSize.width)
-        let chunkY = Math.floor(coord.y / this.chunkSize.height)
-
-        return new Chunk(new Coord(chunkX, chunkY))
-    }
-
-    private setPlayerInitPos(player: Player, chunk: Chunk, initPlayerWorldCoordinate: Coord, chunkSize:Rectangle) {
-        let distanceFromChunkEdgeToPlayerX = initPlayerWorldCoordinate.x - chunk.originWorldCoord.x * chunkSize.width
-        let distanceFromChunkEdgeToPlayerY = initPlayerWorldCoordinate.y - chunk.originWorldCoord.y * chunkSize.height
-
-        let distanceInPixelsX = distanceFromChunkEdgeToPlayerX * CellConfig.CELL_WIDTH
-        let distanceInPixelsY = distanceFromChunkEdgeToPlayerY * CellConfig.CELL_HEIGHT
-
-        player.pos = ex.vec(distanceInPixelsX, distanceInPixelsY)
-    }
-
     private lastCoord:Coord
 
     playerPreDraw() {
-        let col = Math.floor(this.player.pos.x / CellConfig.CELL_WIDTH)
+            let col = Math.floor(this.player.pos.x / CellConfig.CELL_WIDTH)
         let row = Math.floor(this.player.pos.y / CellConfig.CELL_HEIGHT)
         let currentCoord = new Coord(col, row)
 
@@ -115,27 +127,34 @@ export class SceneManager {
             this.drawScene()
         }
 
-        // console.log("pos", this.player.pos.x, this.player.pos.y, new Coord(this.lastCol, this.lastRow).toString())
+        if (this.lastCoord !== undefined && !this.lastCoord.equals(currentCoord)) {
+            console.log("pos", this.player.pos.x, this.player.pos.y, this.lastCoord.toString())
+        }
 
         this.lastCoord = currentCoord
+    }
+
+    getPlayerCoord():Coord {
+        let col = Math.floor(this.player.pos.x / CellConfig.CELL_WIDTH)
+        let row = Math.floor(this.player.pos.y / CellConfig.CELL_HEIGHT)
+        return new Coord(col, row)
     }
 
     drawScene() {
         console.log("changeSceneTo", this)
 
-        // TODO change chunk
+        console.log("getPlayerCoord", this.getPlayerCoord())
+        this.setChunkAndPlayerPos(this.getPlayerCoord())
+
         let newScene = this.createScene(this.chunk)
-        // let newScene = this.createScene2()
 
         let newSceneName = `chunk-${this.chunk.originWorldCoord.toString()}`
         this.engine.add(newSceneName, newScene)
 
-        // this.chunk = currentChunk
-
         this.engine.goToScene(newSceneName)
 
         // Replace scene
-        if (this.chunk != undefined) {
+        if (this.scene != undefined) {
             this.engine.removeScene(this.scene) // TODO is this good enough for garbage collection?
         }
 
@@ -143,63 +162,17 @@ export class SceneManager {
     }
 
     private createScene(playerChunk: Chunk): ex.Scene {
-        let scene = new ex.Scene()
-
         let tileMap = TileMapFactory.createTileMap(
             this.engine.screen.drawWidth, this.engine.screen.drawHeight, this.worldMap, playerChunk, this.chunkSize)
-        console.log("tileMap", tileMap)
-        console.log("tileMap", tileMap.rows, tileMap.cols)
-        console.log("tileMap data", tileMap.data.length, tileMap.data[0])
+
+        let scene = new ex.Scene()
 
         scene.add(tileMap)
-
         scene.add(this.player);
+
         scene.camera.strategy.lockToActor(this.player)
 
         return scene;
     }
 
-    private createScene2():ex.Scene {
-        let scene = new ex.Scene()
-
-        let tileMap = new ex.TileMap({
-            x: 0,
-            y: 0,
-            rows: 50,
-            cols: 20,
-            cellWidth: 48,
-            cellHeight: 48,
-        });
-
-        let elementsSpriteSheet = createElementsSpriteSheet()
-        const grass = elementsSpriteSheet.getSprite(0, 0);
-
-        for (let cell of tileMap.data) {
-            cell.addGraphic(grass);
-        }
-
-        scene.add(tileMap);
-        scene.add(this.player);
-
-        return scene
-
-    }
-}
-
-function createElementsSpriteSheet() {
-    return SpriteSheet.fromImageSource({
-        image: TileMapFactory.loadables()[0],
-        grid: {
-            rows: 3,
-            columns: 8,
-            spriteWidth: CellConfig.CELL_WIDTH,
-            spriteHeight: CellConfig.CELL_HEIGHT,
-        },
-        spacing: {
-            margin: {
-                x: 0,
-                y: 0
-            }
-        }
-    });
 }
